@@ -75,6 +75,54 @@
                 </a>
             @endif
 
+            @if(auth()->user()->role === 'super_admin')
+                <a href="{{ route('super_admin.dashboard') }}" 
+                   class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition
+                   {{ request()->routeIs('super_admin.dashboard') ? 'bg-blue-600 text-white shadow-sm shadow-blue-100' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <i class="fa-solid fa-table-columns w-5 text-center {{ request()->routeIs('super_admin.dashboard') ? 'text-white' : 'text-gray-400' }}"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <div x-data="{ open: {{ request()->routeIs('admin.prodi*') || request()->routeIs('admin.bidang-studi*') || request()->routeIs('admin.dosen*') || request()->routeIs('admin.mahasiswa*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open" 
+                            class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition text-gray-500 hover:bg-gray-50 hover:text-gray-900">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-database w-5 text-center text-gray-400"></i>
+                            <span>Manajemen Data</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                    </button>
+
+                    <div x-show="open" x-collapse class="mt-1 pl-11 space-y-1" style="display: none;"> 
+                        
+                        <a href="{{ route('super_admin.prodi.index') }}" 
+                        class="block py-2 px-3 rounded-lg text-xs font-medium transition {{ request()->routeIs('super_admin.prodi*') ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-gray-400 hover:text-gray-900' }}">
+                            <i class="fa-solid fa-circle text-[6px] mr-2 {{ request()->routeIs('super_admin.prodi*') ? 'text-blue-600' : 'text-transparent' }}"></i>
+                            Data Prodi
+                        </a>
+
+                        <a href="{{ route('super_admin.bidang-studi.index') }}" 
+                        class="block py-2 px-3 rounded-lg text-xs font-medium transition {{ request()->routeIs('super_admin.bidang-studi*') ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-gray-400 hover:text-gray-900' }}">
+                            <i class="fa-solid fa-circle text-[6px] mr-2 {{ request()->routeIs('super_admin.bidang-studi*') ? 'text-blue-600' : 'text-transparent' }}"></i>
+                            Data Bidang Studi
+                        </a>
+
+                        <a href="#" 
+                        class="block py-2 px-3 rounded-lg text-xs font-medium transition {{ request()->routeIs('super_admin.dosen*') ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-gray-400 hover:text-gray-900' }}">
+                            <i class="fa-solid fa-circle text-[6px] mr-2 {{ request()->routeIs('super_admin.dosen*') ? 'text-blue-600' : 'text-transparent' }}"></i>
+                            Data Dosen
+                        </a>
+
+                        <a href="#" 
+                        class="block py-2 px-3 rounded-lg text-xs font-medium transition {{ request()->routeIs('super_admin.mahasiswa*') ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-gray-400 hover:text-gray-900' }}">
+                            <i class="fa-solid fa-circle text-[6px] mr-2 {{ request()->routeIs('super_admin.mahasiswa*') ? 'text-blue-600' : 'text-transparent' }}"></i>
+                            Data Mahasiswa
+                        </a>
+
+                    </div>
+                </div>
+            @endif
+
         </nav>
     </div>
 

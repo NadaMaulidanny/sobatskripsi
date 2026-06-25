@@ -36,4 +36,37 @@ class Pengajuan extends Model
                     ->withPivot('status')
                     ->withTimestamps();
     }
+
+    public function scopeFilter($query, array $filters)
+    {
+        // 1. FILTER NAMA / NIM MAHASISWA
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->whereHas('mahasiswa', function ($qMhs) use ($search) {
+                $qMhs->where(function ($qInternal) use ($search) {
+                    $qInternal->where('nim', 'like', '%' . $search . '%')
+                            ->orWhereHas('user', function ($qUser) use ($search) {
+                                $qUser->where('name', 'like', '%' . $search . '%');
+                            });
+                });
+            });
+        }
+
+        // 2. FILTER JUDUL SKRIPSI
+        if (!empty($filters['search_judul'])) {
+            $query->where('judul', 'like', '%' . $filters['search_judul'] . '%');
+        }
+
+        // 3. FILTER STATUS
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        // 4. FILTER BIDANG STUDI
+        if (!empty($filters['bidang_studi_id'])) {
+            $query->where('bidang_studi_id', $filters['bidang_studi_id']);
+        }
+
+        return $query;
+    }
 }
