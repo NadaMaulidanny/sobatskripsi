@@ -50,6 +50,13 @@
                     <i class="fa-solid fa-file-signature w-5 text-center {{ request()->routeIs('kaprodi.pengajuan.index') ? 'text-white' : 'text-gray-400' }}"></i>
                     <span>Pengajuan</span>
                 </a>
+
+                <a href="{{ route('kaprodi.bimbingan.index') }}" 
+                   class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition
+                   {{ request()->routeIs('kaprodi.bimbingan*') ? 'bg-blue-600 text-white shadow-sm shadow-blue-100' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <i class="fa-solid fa-book w-5 text-center {{ request()->routeIs('kaprodi.bimbingan*') ? 'text-white' : 'text-gray-400' }}"></i>
+                    <span>Logbook Bimbingan</span>
+                </a>
             @endif
 
 
@@ -68,9 +75,10 @@
                     <span>Pengajuan Judul</span>
                 </a>
 
-                <a href="#" 
-                   class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition text-gray-400 cursor-not-allowed">
-                    <i class="fa-solid fa-book w-5 text-center text-gray-300"></i>
+                <a href="{{ route('mahasiswa.logbook.index') }}" 
+                   class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition
+                   {{ request()->routeIs('mahasiswa.logbook*') ? 'bg-blue-600 text-white shadow-sm shadow-blue-100' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <i class="fa-solid fa-book w-5 text-center {{ request()->routeIs('mahasiswa.logbook*') ? 'text-white' : 'text-gray-400' }}"></i>
                     <span>Logbook Bimbingan</span>
                 </a>
             @endif
@@ -83,7 +91,7 @@
                     <span>Dashboard</span>
                 </a>
 
-                <div x-data="{ open: {{ request()->routeIs('admin.prodi*') || request()->routeIs('admin.bidang-studi*') || request()->routeIs('admin.dosen*') || request()->routeIs('admin.mahasiswa*') ? 'true' : 'false' }} }">
+                <div x-data="{ open: {{ request()->routeIs('super_admin.prodi*') || request()->routeIs('super_admin.bidang-studi*') || request()->routeIs('super_admin.dosen*') || request()->routeIs('super_admin.mahasiswa*') ? 'true' : 'false' }} }">
                     <button @click="open = !open" 
                             class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition text-gray-500 hover:bg-gray-50 hover:text-gray-900">
                         <div class="flex items-center space-x-3">
@@ -107,13 +115,13 @@
                             Data Bidang Studi
                         </a>
 
-                        <a href="#" 
+                        <a href="{{ route('super_admin.dosen.index') }}" 
                         class="block py-2 px-3 rounded-lg text-xs font-medium transition {{ request()->routeIs('super_admin.dosen*') ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-gray-400 hover:text-gray-900' }}">
                             <i class="fa-solid fa-circle text-[6px] mr-2 {{ request()->routeIs('super_admin.dosen*') ? 'text-blue-600' : 'text-transparent' }}"></i>
                             Data Dosen
                         </a>
 
-                        <a href="#" 
+                        <a href="{{ route('super_admin.mahasiswa.index') }}" 
                         class="block py-2 px-3 rounded-lg text-xs font-medium transition {{ request()->routeIs('super_admin.mahasiswa*') ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-gray-400 hover:text-gray-900' }}">
                             <i class="fa-solid fa-circle text-[6px] mr-2 {{ request()->routeIs('super_admin.mahasiswa*') ? 'text-blue-600' : 'text-transparent' }}"></i>
                             Data Mahasiswa

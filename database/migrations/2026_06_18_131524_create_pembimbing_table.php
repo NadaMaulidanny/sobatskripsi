@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('pengajuan_id')->constrained()->cascadeOnDelete();
             $table->foreignId('dosen_id')->constrained()->cascadeOnDelete();
             
-            // Ubah enum-nya agar ada status 'request_1' dan 'request_2'
             $table->enum('status', [
                 'request1', 
                 'request2', 

@@ -38,7 +38,7 @@ class BidangStudiController extends Controller
     public function edit($id)
     {
         $bidangStudi = BidangStudi::findOrFail($id);
-        $prodis = Prodi::orderBy('nama', 'asc')->get();
+        $prodis = Prodi::orderBy('nama_prodi', 'asc')->get();
         
         return view('super.bidang-studi.edit', compact('bidangStudi', 'prodis'));
     }
