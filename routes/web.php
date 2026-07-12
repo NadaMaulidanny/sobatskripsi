@@ -8,6 +8,7 @@ use App\Http\Controllers\Kaprodi\ManajemenMhsController as ManajemenMhsControlle
 use App\Http\Controllers\Kaprodi\MahasiswaVerificationController;
 
 use App\Http\Controllers\Dosen\DosenDashboardController as DosenDashboardController;
+use App\Http\Controllers\Dosen\JadwalController as JadwalController;
 use App\Http\Controllers\Dosen\BimbinganController as BimbinganController;
 
 use App\Http\Controllers\Mahasiswa\MhsDashboardController as MhsDashboardController;
@@ -57,6 +58,10 @@ Route::middleware(['auth', 'role:kaprodi'])->prefix('kaprodi')->name('kaprodi.')
     Route::get('/pengajuan/{id}', [App\Http\Controllers\Kaprodi\PengajuanController::class, 'show'])->name('pengajuan.show');
     Route::patch('/pengajuan/{id}/update-status', [App\Http\Controllers\Kaprodi\PengajuanController::class, 'updateStatus'])->name('pengajuan.update');
 
+    Route::get('/jadwal', [JadwalController::class, 'index'])->name('jadwal.index');
+    Route::post('/jadwal', [JadwalController::class, 'store'])->name('jadwal.store');
+    Route::delete('/jadwal/{id}', [JadwalController::class, 'destroy'])->name('jadwal.destroy');
+
     Route::get('/bimbingan', [BimbinganController::class, 'index'])->name('bimbingan.index');
     Route::get('/bimbingan/logbook/{mahasiswa_id}', [BimbinganController::class, 'showLogbook'])->name('bimbingan.logbook');
     Route::put('/bimbingan/logbook/{id}/review', [BimbinganController::class, 'updateLogbook'])->name('bimbingan.logbook.review');
@@ -64,6 +69,16 @@ Route::middleware(['auth', 'role:kaprodi'])->prefix('kaprodi')->name('kaprodi.')
 
 Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
     Route::get('/dashboard', [DosenDashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/pengajuan', [App\Http\Controllers\Dosen\PengajuanController::class, 'index'])->name('pengajuan.index');
+    Route::get('/pengajuan/{id}', [App\Http\Controllers\Dosen\PengajuanController::class, 'show'])->name('pengajuan.show');
+    Route::put('/pengajuan/{id}/review', [App\Http\Controllers\Dosen\PengajuanController::class, 'storeReview'])->name('review.store');
+
+    Route::get('/mahasiswa-bimbingan', [App\Http\Controllers\Dosen\MahasiswaBimbinganController::class, 'index'])->name('mahasiswa-bimbingan.index');
+
+    Route::get('/jadwal', [JadwalController::class, 'index'])->name('jadwal.index');
+    Route::post('/jadwal', [JadwalController::class, 'store'])->name('jadwal.store');
+    Route::delete('/jadwal/{id}', [JadwalController::class, 'destroy'])->name('jadwal.destroy');
 
     Route::get('/bimbingan', [BimbinganController::class, 'index'])->name('bimbingan.index');
     Route::get('/bimbingan/logbook/{mahasiswa_id}', [BimbinganController::class, 'showLogbook'])->name('bimbingan.logbook');
@@ -77,10 +92,6 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasi
     Route::get('/pengajuan/create', [PengajuanController::class, 'create'])->name('pengajuan.create');
     Route::post('/pengajuan', [PengajuanController::class, 'store'])->name('pengajuan.store');
     Route::get('/pengajuan/{pengajuan}', [PengajuanController::class, 'show'])->name('pengajuan.show');
-
-    Route::get('/logbook', [LogbookController::class, 'index'])->name('logbook.index');
-    Route::get('/logbook/tambah', [LogbookController::class, 'create'])->name('logbook.create');
-    Route::post('/logbook/simpan', [LogbookController::class, 'store'])->name('logbook.store');
 });
 
 Route::middleware(['auth', 'role:super_admin'])->prefix('super_admin')->name('super_admin.')->group(function () {
@@ -113,6 +124,9 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('super_admin')->name('su
     Route::get('/mahasiswa/{id}/edit', [MahasiswaController::class, 'edit'])->name('mahasiswa.edit');
     Route::put('/mahasiswa/{id}', [MahasiswaController::class, 'update'])->name('mahasiswa.update');
     Route::delete('/mahasiswa/delete/{id}', [MahasiswaController::class, 'destroy'])->name('mahasiswa.destroy');
+    Route::post('/mahasiswa/import', [MahasiswaController::class, 'importMahasiswa'])->name('mahasiswa.import');
+    Route::get('/mahasiswa/export/excel', [MahasiswaController::class, 'exportMahasiswaExcel'])->name('mahasiswa.export');
+    Route::get('/mahasiswa/export/pdf', [MahasiswaController::class, 'exportMahasiswaPdf'])->name('mahasiswa.export_pdf');
 });
 
 Route::middleware('auth')->group(function () {

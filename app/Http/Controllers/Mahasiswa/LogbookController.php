@@ -3,92 +3,116 @@
 namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
-use App\Models\Mahasiswa;
 use App\Models\Logbook;
+use App\Models\JadwalDosen;
 use App\Models\Dosen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class LogbookController extends Controller
 {
-    private function getMahasiswa()
-    {
-        return Mahasiswa::where('user_id', Auth::id())->firstOrFail();
-    }
-
     public function index()
     {
-        $mahasiswa = $this->getMahasiswa();
+        $mahasiswa = Auth::user()->mahasiswa;
         
-        $logbooks = Logbook::with('dosen.user')
+        $logbooks = Logbook::with('dosen.user') // Eager load data dosen agar performa enteng
             ->where('mahasiswa_id', $mahasiswa->id)
-            ->latest()
+            ->orderBy('tanggal_bimbingan', 'desc')
             ->paginate(10);
 
-        return view('mahasiswa.logbook.index', compact('logbooks', 'mahasiswa'));
+        return view('mahasiswa.logbook.index', compact('logbooks'));
     }
-
+    
     public function create()
     {
-        $mahasiswa = $this->getMahasiswa();
+        $mahasiswa = Auth::user()->mahasiswa; 
 
-        // Menggunakan relasi 'bimbinganPengajuan' milik model Dosen untuk memfilter
-        $dosens = Dosen::with('user')
-            ->whereHas('bimbinganPengajuan', function($query) use ($mahasiswa) {
-                $query->where('mahasiswa_id', $mahasiswa->id)
-                      ->whereIn('pembimbing.status', ['pembimbing1', 'pembimbing2']);
-            })->get();
-
-        if ($dosens->isEmpty()) {
+        $pengajuanAktif = $mahasiswa->pengajuans()
+            ->with(['pembimbingDosens.user'])
+            ->where('status', 'disetujui') 
+            ->first();
+        
+        if (!$pengajuanAktif) {
             return redirect()->route('mahasiswa.logbook.index')
-                ->with('error', 'Anda belum memiliki Dosen Pembimbing resmi untuk pengajuan judul Anda.');
+                ->with('error', 'Anda belum memiliki pengajuan pembimbing skripsi yang disetujui.');
         }
 
-        return view('mahasiswa.logbook.create', compact('dosens'));
+        $pembimbing1 = $pengajuanAktif->pembimbingDosens
+            ->first(function($dosen) {
+                return $dosen->pivot->status === 'pembimbing1';
+            });
+
+        $pembimbing2 = $pengajuanAktif->pembimbingDosens
+            ->first(function($dosen) {
+                return $dosen->pivot->status === 'pembimbing2';
+            });
+
+        return view('mahasiswa.logbook.create', compact('mahasiswa', 'pembimbing1', 'pembimbing2'));
     }
 
-    public function store(Request $request)
+    public function getHariDosen($dosen_id)
     {
-        $mahasiswa = $this->getMahasiswa();
-
-        // 1. Validasi Input
-        $request->validate([
-            'dosen_id' => 'required|exists:dosens,id',
-            'bab' => 'required|string',
-            'kegiatan' => 'required|string',
-            'tanggal_bimbingan' => 'required|date|after_or_equal:today', 
-            'file_bab' => 'required|file|mimes:pdf,doc,docx|max:5120', 
-        ]);
-
-        // 2. Proses Custom Rename & Upload File Bab
-        $filePath = null;
-        if ($request->hasFile('file_bab')) {
-            $file = $request->file('file_bab');
-            
-            // Mengambil ekstensi asli file (misal: pdf, docx)
-            $extension = $file->getClientOriginalExtension();
-            
-            // Membersihkan string nama Bab agar tidak ada spasi (misal: "Bab 1" jadi "Bab-1")
-            $slugBab = str_replace(' ', '-', $request->bab);
-            
-            // Menyusun nama file baru: NIM_Bab-1_202606271530.pdf
-            $customFileName = $mahasiswa->nim . '_' . $slugBab . '_' . date('YmdHis') . '.' . $extension;
-            
-            // Simpan file ke folder 'storage/app/public/file_bab' dengan nama kustom
-            $filePath = $file->storeAs('file_bab', $customFileName, 'public');
+        $dosen = Dosen::find($dosen_id);
+        
+        if (!$dosen) {
+            return response()->json([]);
         }
 
-        // 3. Simpan Data ke Database
-        Logbook::create([
-            'mahasiswa_id' => $mahasiswa->id,
-            'dosen_id' => $request->dosen_id,
-            'bab' => $request->bab,
-            'kegiatan' => $request->kegiatan,
-            'file_bab' => $filePath, 
-            'tanggal_bimbingan' => $request->tanggal_bimbingan,
-            'status' => 'pending', 
+        $hariTersedia = JadwalDosen::where('user_id', $dosen->user_id)
+                            ->pluck('hari')
+                            ->toArray();
+        
+        return response()->json($hariTersedia);
+    }
+
+    /**
+     * Menyimpan Data Pengajuan Logbook Baru ke Database
+     */
+    public function store(Request $request)
+    {
+        $mahasiswa = Auth::user()->mahasiswa;
+        
+        // 1. Validasi Form Dasar + pastikan dosen target dipilih
+        $request->validate([
+            'dosen_id' => 'required|exists:dosens,id',
+            'tanggal_bimbingan' => 'required|date|after_or_equal:today',
+            'bab' => 'required|string',
+            'kegiatan' => 'required|string|min:10',
+            'file_bab' => 'nullable|mimes:pdf,doc,docx|max:2048',
         ]);
 
-        return redirect()->route('mahasiswa.logbook.index')->with('success', 'Jadwal bimbingan berhasil di-booking dan file bab telah terkirim!');
+        // 2. Ambil hari ketersediaan dosen target dari database
+        $dosenTarget = \App\Models\Dosen::findOrFail($request->dosen_id);
+        $hariTersedia = JadwalDosen::where('user_id', $dosenTarget->user_id)->pluck('hari')->toArray();
+        
+        // 3. Deteksi nama hari pilihan mahasiswa ('Monday', 'Tuesday', dll)
+        $hariInput = Carbon::parse($request->tanggal_bimbingan)->format('l');
+
+        // 4. Validasi Keamanan Backend: Cek kecocokan hari operasional dosen target
+        if (count($hariTersedia) > 0 && !in_array($hariInput, $hariTersedia)) {
+            return redirect()->back()
+                ->withErrors(['tanggal_bimbingan' => 'Gagal! Tanggal tidak sesuai dengan jadwal operasional dosen pembimbing yang Anda pilih.'])
+                ->withInput();
+        }
+
+        // 5. Proses Upload Berkas Pendukung (jika ada)
+        $pathFile = null;
+        if ($request->hasFile('file_bab')) {
+            $pathFile = $request->file('file_bab')->store('file_bimbingan', 'public');
+        }
+
+        // 6. Simpan permanen data logbook baru
+        Logbook::create([
+            'mahasiswa_id' => $mahasiswa->id,
+            'dosen_id' => $request->dosen_id, // Pastikan tabel logbooks kamu punya kolom dosen_id ya!
+            'tanggal_bimbingan' => $request->tanggal_bimbingan,
+            'bab' => $request->bab,
+            'kegiatan' => $request->kegiatan,
+            'file_bab' => $pathFile,
+            'status' => 'pending',
+        ]);
+
+        return redirect()->route('mahasiswa.logbook.index')->with('success', 'Request jadwal bimbingan baru berhasil dikirim ke dosen target!');
     }
 }

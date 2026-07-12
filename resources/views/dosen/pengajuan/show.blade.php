@@ -43,11 +43,11 @@
                     </div>
                 @elseif($pengajuan->status === 'disetujui')
                     <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 p-4 rounded-xl text-xs font-medium">
-                        <i class="fa-regular fa-circle-check mr-1.5 text-emerald-500 font-bold"></i> Selamat! Usulan judul skripsi Anda telah disetujui.
+                        <i class="fa-regular fa-circle-check mr-1.5 text-emerald-500 font-bold"></i> Usulan judul skripsi telah disetujui.
                     </div>
                 @else
                     <div class="bg-rose-50 border border-rose-100 text-rose-700 p-4 rounded-xl text-xs font-medium">
-                        <i class="fa-regular fa-circle-xmark mr-1.5 text-rose-500 font-bold"></i> Maaf, usulan judul skripsi Anda ditolak.
+                        <i class="fa-regular fa-circle-xmark mr-1.5 text-rose-500 font-bold"></i> Usulan judul skripsi ditolak.
                     </div>
                 @endif
 
@@ -128,6 +128,42 @@
                         </div>
                     @endif
                 </div>
+
+                {{-- BAGIAN 2: FORM INPUT TAMBAH CATATAN BARU --}}
+                @if(Auth::user()->dosen && in_array($pengajuan->bidang_studi_id, Auth::user()->dosen->bidangStudis->pluck('id')->toArray()))
+                    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col w-full">
+                        <h5 class="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5 mb-3">
+                            <i class="fa-solid fa-comment-medical text-blue-500"></i> Tulis Catatan Baru
+                        </h5>
+
+                        @if(session('success'))
+                            <div class="mb-3 p-3 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-xl text-[11px] font-medium flex items-center gap-1">
+                                <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
+                            </div>
+                        @endif
+
+                        <form action="{{ route('dosen.review.store', $pengajuan->id) }}" method="POST" class="space-y-3">
+                            @csrf
+                            @method('PUT')
+                            
+                            <div>
+                                <textarea 
+                                    name="catatan_input" 
+                                    rows="3" 
+                                    required
+                                    placeholder="Berikan masukan atau rekomendasi Anda sebagai dosen bidang..."
+                                    class="w-full p-3 text-xs bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder-gray-400 shadow-inner resize-none"></textarea>
+                                @error('catatan_input')
+                                    <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <button type="submit" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-paper-plane text-[10px]"></i> Kirim Catatan Saya
+                            </button>
+                        </form>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

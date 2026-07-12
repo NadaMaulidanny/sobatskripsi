@@ -1,52 +1,111 @@
 <x-app-layout>
      <x-slot name="title">Dashboard Mahasiswa - Portal Skripsi</x-slot>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6 w-full">
-        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between border-l-4 border-l-amber-500">
-            <div>
-                <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Status Judul</p>
-                <h4 class="text-base font-bold text-gray-900 mt-1">Pending</h4>
-                <p class="text-[10px] text-amber-500 font-medium mt-1 flex items-center">
-                    <i class="fa-regular fa-clock mr-1"></i> Menunggu Review Kaprodi
-                </p>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
-                <i class="fa-solid fa-file-invoice text-sm"></i>
-            </div>
-        </div>
+    
+            @if($pengajuanTerakhir)
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6 w-full">
+                    
+                    {{-- Kondisi: DISETUJUI --}}
+                    @if($pengajuanTerakhir->status === 'disetujui')
+                        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between border-l-4 border-l-emerald-500">
+                            <div>
+                                <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Status Judul</p>
+                                <h4 class="text-base font-bold text-gray-900 mt-1">{{ ucfirst($pengajuanTerakhir->status) }}</h4>
+                                <p class="text-[10px] text-emerald-600 font-medium mt-1 flex items-center">
+                                    <i class="fa-regular fa-clock mr-1"></i> Sudah disetujui kaprodi
+                                </p>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500">
+                                <i class="fa-solid fa-file-invoice text-sm"></i>
+                        </div>
+
+                    {{-- Kondisi: DITOLAK --}}
+                    @elseif($pengajuanTerakhir->status === 'Ditolak' || $pengajuanTerakhir->status === 'ditolak')
+                        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between border-l-4 border-l-red-500">
+                            <div>
+                                <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Status Judul</p>
+                                <h4 class="text-base font-bold text-gray-900 mt-1">{{ ucfirst($pengajuanTerakhir->status) }}</h4>
+                                <p class="text-[10px] text-red-600 font-medium mt-1 flex items-center">
+                                    <i class="fa-regular fa-clock mr-1"></i> Silakan ajukan judul baru
+                                </p>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600">
+                                <i class="fa-solid fa-file-invoice text-sm"></i>
+                        </div>
+
+                    {{-- Kondisi: MENUNGGU --}}
+                    @elseif($pengajuanTerakhir->status === 'menunggu')
+                        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between border-l-4 border-l-amber-500">
+                            <div>
+                                <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Status Judul</p>
+                                <h4 class="text-base font-bold text-gray-900 mt-1">{{ ucfirst($pengajuanTerakhir->status) }}</h4>
+                                <p class="text-[10px] text-amber-500 font-medium mt-1 flex items-center">
+                                    <i class="fa-regular fa-clock mr-1"></i> Menunggu persetujuan kaprodi
+                                </p>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
+                                <i class="fa-solid fa-file-invoice text-sm"></i>
+                        </div>
+                    @endif
+
+                </div>
+            @else
+                {{-- Kondisi: BELUM PERNAH MENGAJUKAN (Null) --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6 w-full">
+                    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between border-l-4 border-l-gray-300">
+                        <div>
+                            <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Status Judul</p>
+                            <h4 class="text-base font-bold text-gray-900 mt-1">Belum Ada</h4>
+                            <p class="text-[10px] text-gray-500 font-medium mt-1 flex items-center">
+                                <i class="fa-regular fa-clock mr-1"></i> Silakan ajukan judul baru
+                            </p>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                            <i class="fa-solid fa-file-invoice text-sm"></i>
+                    </div>
+                </div>
+            @endif
 
         <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between border-l-4 border-l-blue-600">
             <div>
                 <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Pembimbing Utama</p>
-                <h4 class="text-xs font-bold text-gray-800 mt-2 line-clamp-1">Belum Di-plot</h4>
-                <p class="text-[10px] text-gray-400 font-medium mt-1">Menunggu judul di-ACC</p>
+                @if($pengajuanTerakhir && $pengajuanTerakhir->pembimbingDosens->isNotEmpty())
+                    <h4 class="text-xs font-bold text-gray-800 mt-2 line-clamp-1">{{ $pengajuanTerakhir->pembimbingDosens->first()->user->name }}</h4>
+                    <p class="text-[10px] text-gray-400 font-medium mt-1">Dosen Pembimbing</p>
+                @else
+                    <h4 class="text-xs font-bold text-gray-800 mt-2 line-clamp-1">Belum Di-plot</h4>
+                    <p class="text-[10px] text-gray-400 font-medium mt-1">Menunggu judul di-ACC</p>
+                @endif
             </div>
             <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                <i class="fa-solid fa-graduation-cap text-sm"></i>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between border-l-4 border-l-gray-600">
+            <div>
+                <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Pembimbing Pendamping</p>
+                @if($pengajuanTerakhir && $pengajuanTerakhir->pembimbingDosens->isNotEmpty())
+                    <h4 class="text-xs font-bold text-gray-800 mt-2 line-clamp-1">{{ $pengajuanTerakhir->pembimbingDosens->last()->user->name }}</h4>
+                    <p class="text-[10px] text-gray-400 font-medium mt-1">Dosen Pembimbing</p>
+                @else
+                    <h4 class="text-xs font-bold text-gray-800 mt-2 line-clamp-1">Belum Di-plot</h4>
+                    <p class="text-[10px] text-gray-400 font-medium mt-1">Menunggu judul di-ACC</p>
+                @endif
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-600">
                 <i class="fa-solid fa-user-tie text-sm"></i>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between border-l-4 border-l-purple-500">
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between border-l-4 border-l-purple-600">
             <div>
-                <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Fase Akademik</p>
-                <h4 class="text-base font-bold text-gray-900 mt-1">Pengajuan Judul</h4>
-                <p class="text-[10px] text-purple-500 font-medium mt-1">Tahap Awal (Tahap 1)</p>
+                <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Total Usulan</p>
+                <h4 class="text-xs font-bold text-purple-800 mt-2 line-clamp-1">{{ $pengajuans->count() }}</h4>
+                <p class="text-[10px] text-gray-400 font-medium mt-1">Judul yang diajukan</p>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-500">
-                <i class="fa-solid fa-spinner text-sm"></i>
-            </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between border-l-4 border-l-emerald-500">
-            <div>
-                <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Total Bimbingan</p>
-                <h4 class="text-base font-bold text-gray-900 mt-1">0 <span class="text-xs text-gray-400 font-normal">Sesi</span></h4>
-                <p class="text-[10px] text-emerald-500 font-medium mt-1 flex items-center">
-                    <i class="fa-solid fa-circle-check mr-1"></i> Belum Memulai
-                </p>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500">
-                <i class="fa-solid fa-book text-sm"></i>
+            <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                <i class="fa-solid fa-folder-open text-sm"></i>
             </div>
         </div>
     </div>
@@ -61,9 +120,9 @@
                 Sistem mendeteksi Anda belum mengajukan atau memiliki judul skripsi yang disetujui. Silakan persiapkan judul utama, opsi judul cadangan, serta deskripsi abstrak untuk ditinjau oleh Kepala Program Studi.
             </p>
         </div>
-        <div class="flex-shrink-0">
-            <a href="{{ route('mahasiswa.pengajuan.create') }}" class="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-100 transition flex items-center">
-                <i class="fa-solid fa-paper-plane mr-2"></i> Mulai Pengajuan Judul
+        <div class="flex gap-3">
+            <a href="{{ asset('dokumen/pedoman_judul_ta.pdf') }}" target="_blank" class="flex-1 md:flex-none border border-gray-200 text-gray-700 hover:bg-gray-50 font-semibold text-sm px-4 py-3 rounded-xl transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-book text-gray-400"></i> Pedoman Judul
             </a>
         </div>
     </div>
@@ -87,34 +146,42 @@
                     </tr>
                 </thead>
                 <tbody class="text-xs text-gray-600 divide-y divide-gray-100">
-                    {{-- Ganti statis ini dengan @forelse ($pengajuans as $pengajuan) jika data dari DB sudah siap --}}
-                    <tr class="hover:bg-slate-50/50 transition">
-                        <td class="p-4 pl-6 max-w-sm">
-                            <p class="font-semibold text-gray-900 truncate">Rancang Bangun Sistem Informasi Pengajuan Judul Skripsi Berbasis Framework Laravel</p>
-                            <p class="text-[10px] text-gray-400 mt-0.5 truncate">Abstrak: Sistem ini dibangun menggunakan arsitektur MVC...</p>
-                        </td>
-                        <td class="p-4 font-medium text-gray-500">
-                            {{ date('d M Y') }}
-                        </td>
-                        <td class="p-4 font-medium text-gray-700">
-                            Dr. Budi Santoso, M.T.
-                        </td>
-                        <td class="p-4 pr-6 text-center">
-                            <span class="bg-amber-50 text-amber-600 border border-amber-100 font-semibold px-2.5 py-1 rounded-full text-[10px]">
-                                Menunggu Review
-                            </span>
-                        </td>
-                    </tr>
-                    
-                    {{-- Tampilan jika kosong --}}
-                    {{-- 
-                    <tr>
-                        <td colspan="4" class="p-8 text-center text-gray-400 font-medium">
-                            <i class="fa-regular fa-folder-open text-lg block mb-1.5 text-gray-300"></i>
-                            Belum ada riwayat pengajuan judul.
-                        </td>
-                    </tr> 
-                    --}}
+                    @forelse ($pengajuans as $item)
+                        <tr class="hover:bg-slate-50/50 transition">
+                            <td class="p-4 pl-6 max-w-sm">
+                                <p class="font-semibold text-gray-900 truncate">{{ $item->judul }}</p>
+                                <p class="text-[10px] text-gray-400 mt-0.5 truncate">Abstrak: {{ Str::limit($item->deskripsi, 50) }}</p>
+                            </td>
+                            <td class="p-4 font-medium text-gray-500">
+                                {{ date('d M Y', strtotime($item->created_at)) }}
+                            </td>
+                            <td class="p-4 font-medium text-gray-700">
+                                {{ $item->pembimbingDosens->pluck('user.name')->join(', ') }}
+                            </td>
+                            <td class="p-4 pr-6 text-center">
+                                @if($item->status === 'disetujui')
+                                    <span class="bg-emerald-50 text-emerald-600 border border-emerald-100 font-semibold px-2.5 py-1 rounded-full text-[10px]">
+                                        {{ $item->status }}
+                                    </span>
+                                @elseif($item->status === 'ditolak')
+                                    <span class="bg-red-50 text-red-600 border border-red-100 font-semibold px-2.5 py-1 rounded-full text-[10px]">
+                                        {{ $item->status }}
+                                    </span>
+                                @elseif($item->status === 'menunggu')
+                                    <span class="bg-amber-50 text-amber-600 border border-amber-100 font-semibold px-2.5 py-1 rounded-full text-[10px]">
+                                        {{ $item->status }}
+                                    </span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="p-8 text-center text-gray-400 font-medium">
+                                <i class="fa-solid fa-magnifying-glass text-lg block mb-1.5 text-gray-300"></i>
+                                Tidak ada data pengajuan judul skripsi yang ditemukan.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

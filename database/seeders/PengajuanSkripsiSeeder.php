@@ -18,7 +18,6 @@ class PengajuanSkripsiSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Buat Data Prodi (Program Studi)
         $prodiTI = Prodi::create(['nama_prodi' => 'Teknik Informatika']);
         $prodiSI = Prodi::create(['nama_prodi' => 'Sistem Informasi']);
 

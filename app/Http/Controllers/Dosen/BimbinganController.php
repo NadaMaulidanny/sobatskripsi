@@ -11,10 +11,17 @@ use Illuminate\Support\Facades\Auth;
 
 class BimbinganController extends Controller
 {
+    /**
+     * Mengambil data model Dosen berdasarkan user yang sedang login
+     */
     private function getDosen()
     {
         return Dosen::where('user_id', Auth::id())->firstOrFail();
     }
+
+    /**
+     * Menampilkan daftar mahasiswa yang dibimbing oleh dosen ini
+     */
     public function index()
     {
         $dosen = $this->getDosen();
@@ -27,84 +34,76 @@ class BimbinganController extends Controller
         return view('dosen.bimbingan.index', compact('mahasiswas'));
     }
 
-    // 2. Tampilkan Logbook dari Mahasiswa Terpilih
+    /**
+     * Menampilkan seluruh daftar logbook/riwayat bimbingan dari satu mahasiswa tertentu
+     */
     public function showLogbook($mahasiswa_id)
     {
+        // Pastikan mahasiswa yang diakses memang mahasiswa bimbingan dosen ini
         $dosen = $this->getDosen();
-        $mahasiswa = Mahasiswa::with('user')->findOrFail($mahasiswa_id);
-        
+        $mahasiswa = Mahasiswa::with(['user'])->whereHas('pengajuans.pembimbingDosens', function($query) use ($dosen) {
+            $query->where('dosen_id', $dosen->id);
+        })->findOrFail($mahasiswa_id);
+
+        // Ambil semua data logbook bimbingan milik mahasiswa tersebut
         $logbooks = Logbook::where('mahasiswa_id', $mahasiswa_id)
-            ->where('dosen_id', $dosen->id)
-            ->latest()
+            ->orderBy('tanggal_bimbingan', 'desc')
             ->get();
 
         return view('dosen.bimbingan.logbook', compact('mahasiswa', 'logbooks'));
     }
 
-    public function updateLogbook(Request $request, $id)
-    {
-        $logbook = Logbook::findOrFail($id);
-
-        // 1. Tentukan aturan validasi dinamis berdasarkan tombol aksi yang di-klik
-        if (in_array($request->status, ['disetujui', 'ditolak'])) {
-            // Fase 1: Hanya validasi status booking
-            $request->validate([
-                'status' => 'required|in:disetujui,ditolak',
-            ]);
-        } else {
-            // Fase 2: Validasi hasil review bab skripsi setelah pertemuan
-            $request->validate([
-                'catatan_dosen' => 'required|string|min:5',
-                'status' => 'required|in:acc,revisi',
-            ]);
-        }
-
-        // 2. Lakukan update data ke database
-        $logbook->update([
-            'catatan_dosen' => $request->catatan_dosen ?? $logbook->catatan_dosen,
-            'status' => $request->status,
-        ]);
-
-        // 3. Berikan pesan alert sukses yang adaptif
-        $message = 'Status bimbingan berhasil diperbarui!';
-        if ($request->status === 'disetujui') { $message = 'Jadwal pertemuan bimbingan berhasil disetujui!'; }
-        if ($request->status === 'ditolak') { $message = 'Jadwal pertemuan bimbingan telah ditolak.'; }
-        if ($request->status === 'acc') { $message = 'Progres bab mahasiswa berhasil di-ACC!'; }
-        if ($request->status === 'revisi') { $message = 'Catatan revisi berhasil dikirim ke mahasiswa.'; }
-
-        return redirect()->back()->with('success', $message);
-    }
-
+    /**
+     * Memproses aksi review logbook (Setuju, Tolak, ACC, Revisi)
+     */
     public function reviewLogbook(Request $request, $id)
     {
         $logbook = Logbook::findOrFail($id);
 
-        // Validasi kondisional berdasarkan fase tombol yang diklik
-        if (in_array($request->status, ['disetujui', 'ditolak'])) {
+        // Kasus 1: Dosen menolak booking jadwal dari mahasiswa
+        if ($request->status === 'ditolak') {
             $request->validate([
-                'status' => 'required|in:disetujui,ditolak',
+                'status' => 'required|in:ditolak',
+                'alasan_dropdown' => 'required|string',
+                'catatan_tambahan' => 'nullable|string',
             ]);
+
+            // Menggabungkan pilihan dropdown dan isi komentar tambahan ke satu field database
+            $gabungCatatan = "[" . $request->alasan_dropdown . "] " . ($request->catatan_tambahan ?? 'Tidak ada catatan tambahan.');
+
+            $logbook->update([
+                'catatan_dosen' => $gabungCatatan,
+                'status' => 'ditolak',
+            ]);
+            
+            $message = 'Jadwal pertemuan bimbingan berhasil ditolak dengan alasan sistem.';
+
+        // Kasus 2: Dosen menyetujui booking jadwal dari mahasiswa
+        } elseif ($request->status === 'disetujui') {
+            $request->validate([ 
+                'status' => 'required|in:disetujui' 
+            ]);
+            
+            $logbook->update([ 
+                'status' => 'disetujui' 
+            ]);
+            
+            $message = 'Jadwal pertemuan bimbingan berhasil disetujui!';
+
+        // Kasus 3: Pertemuan selesai, dosen memberikan status kelayakan Bab (ACC / Revisi)
         } else {
             $request->validate([
                 'catatan_dosen' => 'required|string|min:5',
                 'status' => 'required|in:acc,revisi',
             ]);
+
+            $logbook->update([
+                'catatan_dosen' => $request->catatan_dosen,
+                'status' => $request->status,
+            ]);
+            
+            $message = $request->status === 'acc' ? 'Progres bab berhasil di-ACC!' : 'Catatan evaluasi revisi berhasil dikirim.';
         }
-
-        // Update data logbook
-        $logbook->update([
-            'catatan_dosen' => $request->catatan_dosen ?? $logbook->catatan_dosen,
-            'status' => $request->status,
-        ]);
-
-        // Membuat pesan notifikasi dinamis
-        $message = match ($request->status) {
-            'disetujui' => 'Jadwal pertemuan bimbingan berhasil disetujui!',
-            'ditolak' => 'Jadwal pertemuan bimbingan telah ditolak.',
-            'acc' => 'Progres bab mahasiswa berhasil di-ACC!',
-            'revisi' => 'Catatan revisi berhasil dikirim ke mahasiswa.',
-            default => 'Status bimbingan berhasil diperbarui!',
-        };
 
         return redirect()->back()->with('success', $message);
     }

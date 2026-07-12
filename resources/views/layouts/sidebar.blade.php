@@ -50,22 +50,35 @@
                     <i class="fa-solid fa-file-signature w-5 text-center {{ request()->routeIs('kaprodi.pengajuan.index') ? 'text-white' : 'text-gray-400' }}"></i>
                     <span>Pengajuan</span>
                 </a>
-
-                <a href="{{ route('kaprodi.bimbingan.index') }}" 
-                   class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition
-                   {{ request()->routeIs('kaprodi.bimbingan*') ? 'bg-blue-600 text-white shadow-sm shadow-blue-100' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
-                    <i class="fa-solid fa-book w-5 text-center {{ request()->routeIs('kaprodi.bimbingan*') ? 'text-white' : 'text-gray-400' }}"></i>
-                    <span>Logbook Bimbingan</span>
-                </a>
             @endif
 
+            @if(auth()->user()->role === 'dosen')
+                <a href="{{ route('dosen.dashboard') }}" 
+                   class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition
+                   {{ request()->routeIs('dosen.dashboard') ? 'bg-blue-600 text-white shadow-sm shadow-blue-100' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <i class="fa-solid fa-table-columns w-5 text-center {{ request()->routeIs('dosen.dashboard') ? 'text-white' : 'text-gray-400' }}"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ route('dosen.pengajuan.index') }}" 
+                   class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition
+                   {{ request()->routeIs('dosen.pengajuan.index') ? 'bg-blue-600 text-white shadow-sm shadow-blue-100' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <i class="fa-solid fa-paper-plane w-5 text-center {{ request()->routeIs('dosen.pengajuan.index') ? 'text-white' : 'text-gray-400' }}"></i>
+                    <span>Daftar Pengajuan</span>
+                </a>
+                <a href="{{ route('dosen.mahasiswa-bimbingan.index') }}" 
+                   class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition
+                   {{ request()->routeIs('dosen.mahasiswa-bimbingan.index') ? 'bg-blue-600 text-white shadow-sm shadow-blue-100' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <i class="fa-solid fa-users w-5 text-center {{ request()->routeIs('dosen.mahasiswa-bimbingan.index') ? 'text-white' : 'text-gray-400' }}"></i>
+                    <span>Mahasiswa Bimbingan</span>
+                </a>
+            @endif
 
             @if(auth()->user()->role === 'mahasiswa')
                 <a href="{{ route('mahasiswa.dashboard') }}" 
                    class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition
                    {{ request()->routeIs('mahasiswa.dashboard') ? 'bg-blue-600 text-white shadow-sm shadow-blue-100' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
                     <i class="fa-solid fa-table-columns w-5 text-center {{ request()->routeIs('mahasiswa.dashboard') ? 'text-white' : 'text-gray-400' }}"></i>
-                    <span>Dashboard Mhs</span>
+                    <span>Dashboard</span>
                 </a>
 
                 <a href="{{ route('mahasiswa.pengajuan.index') }}" 
@@ -73,13 +86,6 @@
                    {{ request()->routeIs('mahasiswa.pengajuan*') ? 'bg-blue-600 text-white shadow-sm shadow-blue-100' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
                     <i class="fa-solid fa-paper-plane w-5 text-center {{ request()->routeIs('mahasiswa.pengajuan*') ? 'text-white' : 'text-gray-400' }}"></i>
                     <span>Pengajuan Judul</span>
-                </a>
-
-                <a href="{{ route('mahasiswa.logbook.index') }}" 
-                   class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition
-                   {{ request()->routeIs('mahasiswa.logbook*') ? 'bg-blue-600 text-white shadow-sm shadow-blue-100' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
-                    <i class="fa-solid fa-book w-5 text-center {{ request()->routeIs('mahasiswa.logbook*') ? 'text-white' : 'text-gray-400' }}"></i>
-                    <span>Logbook Bimbingan</span>
                 </a>
             @endif
 

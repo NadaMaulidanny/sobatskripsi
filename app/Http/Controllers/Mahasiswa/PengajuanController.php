@@ -12,17 +12,25 @@ use App\Models\Dosen;
 
 class PengajuanController extends Controller
 {
-    /**
-     * Menampilkan Halaman Riwayat Pengajuan Judul Mahasiswa
-     */
-    public function index(): View
+    public function index(Request $request)
     {
-        $mahasiswa = auth()->user()->mahasiswa;
+        // Mengunci data agar hanya memanggil milik mahasiswa yang sedang login
+        $query = Pengajuan::where('mahasiswa_id', auth()->user()->mahasiswa->id);
 
-        $pengajuans = Pengajuan::with('bidangStudi')
-            ->where('mahasiswa_id', $mahasiswa->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Filter Pencarian Judul (jika diisi)
+        if ($request->has('search') && $request->search != '') {
+            $query->where('judul', 'like', '%' . $request->search . '%');
+        }
+
+        // Filter Status (jika memilih selain "Semua Status")
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        // Ambil datanya beserta relasi agar tidak n+1 query error
+        $pengajuans = $query->with(['bidangStudi', 'pembimbingDosens.user'])
+                            ->latest()
+                            ->get();
 
         return view('mahasiswa.pengajuan.index', compact('pengajuans'));
     }

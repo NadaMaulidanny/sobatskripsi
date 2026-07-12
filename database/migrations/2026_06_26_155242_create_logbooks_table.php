@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('logbooks', function (Blueprint $table) {
             $table->id();
             $table->foreignId('mahasiswa_id')->constrained('mahasiswas')->cascadeOnDelete();
-            $table->foreignId('dosen_id')->constrained('dosens')->cascadeOnDelete(); // Dosen yang membimbing saat itu
-            $table->string('bab'); // Misal: Bab 1, Bab 2, atau Umum
-            $table->text('kegiatan'); // Progres yang dilaporkan mahasiswa
-            $table->string('file_bab'); // Progres yang dilaporkan mahasiswa
-            $table->text('catatan_dosen')->nullable(); // Revisi dari dosen
+            $table->foreignId('dosen_id')->constrained('dosens')->cascadeOnDelete();
+            $table->string('bab');
+            $table->text('kegiatan');
+            $table->string('file_bab');
+            $table->text('catatan_dosen')->nullable();
             $table->enum('status', ['pending', 'disetujui', 'ditolak', 'revisi', 'acc'])->default('pending');
             $table->date('tanggal_bimbingan');
             $table->timestamps();

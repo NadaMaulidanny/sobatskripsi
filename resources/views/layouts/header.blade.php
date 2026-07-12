@@ -4,18 +4,6 @@
     </div>
     
     <div class="flex items-center space-x-6">
-        <div class="relative w-64">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                <i class="fa-solid fa-magnifying-glass text-xs"></i>
-            </span>
-            <input type="text" placeholder="Cari data skripsi..." class="w-full bg-[#f1f5f9] border-0 pl-9 pr-4 py-2 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-gray-700">
-        </div>
-
-        <div class="flex items-center space-x-4 text-gray-400 text-sm">
-            <button class="hover:text-gray-600"><i class="fa-regular fa-bell"></i></button>
-            <button class="hover:text-gray-600"><i class="fa-regular fa-circle-question"></i></button>
-            <button class="hover:text-gray-600"><i class="fa-solid fa-grip"></i></button>
-        </div>
 
         <div class="flex items-center space-x-3 pl-4 border-l border-gray-200">
             <div class="text-right">

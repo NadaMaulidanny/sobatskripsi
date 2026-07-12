@@ -197,6 +197,34 @@
                 </div>
             @endif
 
+            <div class="space-y-5 mt-5">
+                {{-- BAGIAN 1: LIST SEMUA CATATAN/REVIEW DOSEN YANG SUDAH MASUK --}}
+                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm w-full">
+                    <h5 class="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5 mb-4">
+                        <i class="fa-solid fa-comments text-slate-400"></i> Catatan & Review Dosen Bidang
+                    </h5>
+
+                    @if($pengajuan->catatan_dosen && count($pengajuan->catatan_dosen) > 0)
+                        <div class="space-y-3 max-h-60 overflow-y-auto pr-1">
+                            @foreach($pengajuan->catatan_dosen as $rev)
+                                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[11px] font-bold text-gray-800">{{ $rev['nama_dosen'] }}</span>
+                                        <span class="text-[9px] text-gray-400">{{ \Carbon\Carbon::parse($rev['tanggal'])->diffForHumans() }}</span>
+                                    </div>
+                                    <p class="text-[11px] text-gray-600 leading-relaxed whitespace-pre-line">{{ $rev['catatan'] }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-4 text-gray-400 text-xs">
+                            <i class="fa-solid fa-comment-slash text-lg text-gray-300 mb-1 block"></i>
+                            Belum ada catatan dari dosen bidang.
+                        </div>
+                    @endif
+                </div>
+            </div>
+
         </div>
     </div>
     <script>

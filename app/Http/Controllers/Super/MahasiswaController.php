@@ -9,6 +9,10 @@ use App\Models\Prodi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Imports\MahasiswaImport;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MahasiswaExport;
+use Exception;
 
 class MahasiswaController extends Controller
 {
@@ -95,9 +99,74 @@ class MahasiswaController extends Controller
     public function destroy($id)
     {
         $mahasiswa = Mahasiswa::findOrFail($id);
-        // Cascade delete otomatis membersihkan row di tabel mahasiswas
         $mahasiswa->user->delete(); 
 
         return redirect()->route('super_admin.mahasiswa.index')->with('success', 'Data Mahasiswa berhasil dihapus!');
+    }
+
+    public function importMahasiswa(Request $request)
+    {
+        $request->validate([
+            'file_excel' => 'required|mimes:xlsx,xls,csv|max:2048'
+        ]);
+
+        try {
+            Excel::import(new MahasiswaImport, $request->file('file_excel'));
+            
+            return redirect()->back()->with('success', 'Semua data mahasiswa berhasil diimport!');
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function exportMahasiswaExcel(Request $request) 
+    {
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $fileName = 'data_mahasiswa_' . ($startDate && $endDate ? "${startDate}_to_${endDate}" : date('Y-m-d'));
+        
+        return Excel::download(new MahasiswaExport($startDate, $endDate), $fileName . '.xlsx');
+    }
+
+    public function exportMahasiswaPdf(Request $request) 
+    {
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        $query = Mahasiswa::with(['user', 'prodi']);
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('created_at', [
+                $startDate . ' 00:00:00', 
+                $endDate . ' 23:59:59'
+            ]);
+        }
+
+        $mahasiswas = $query->get();
+
+        // 1. Set nama file dinamis agar tidak 'Untitled'
+        $fileName = 'Laporan_Data_Mahasiswa_';
+        if ($startDate && $endDate) {
+            $fileName .= $startDate . '_to_' . $endDate;
+        } else {
+            $fileName .= date('Y-m-d');
+        }
+        $fileName .= '.pdf';
+
+        // 2. Render HTML view ke dalam string text
+        $html = view('super.mahasiswa.export_pdf', compact('mahasiswas', 'startDate', 'endDate'))->render();
+
+        // 3. Inisialisasi Native Dompdf Vendor (Bypass error class not found)
+        $dompdf = new \Dompdf\Dompdf();
+        $dompdf->loadHtml($html);
+        
+        // Set ukuran kertas A4 Portrait
+        $dompdf->setPaper('A4', 'portrait');
+        
+        // Proses rendering HTML ke file PDF
+        $dompdf->render();
+
+        // 4. Stream & download file langsung ke browser admin
+        return $dompdf->stream($fileName, ["Attachment" => true]);
     }
 }

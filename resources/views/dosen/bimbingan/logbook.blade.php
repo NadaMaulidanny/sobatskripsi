@@ -27,9 +27,10 @@
         @forelse($logbooks as $log)
         <div class="w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             
-            {{-- HEADER CARD: HIGHLIGHT TANGGAL DAN STATUS --}}
+            {{-- HEADER VISUAL BARU: HIGHLIGHT TANGGAL DAN STATUS BADGE --}}
             <div class="flex flex-col sm:flex-row justify-between items-start gap-4 border-b border-gray-50 pb-4 mb-4">
                 <div class="flex items-center gap-3">
+                    <!-- Kotak Kalender Minimalis (Sangat Ter-highlight untuk Dosen) -->
                     <div class="flex flex-col items-center justify-center bg-blue-50 border border-blue-100 rounded-xl p-2.5 min-w-[70px] text-center shadow-sm">
                         <span class="text-[10px] font-bold text-blue-500 uppercase tracking-wider">{{ \Carbon\Carbon::parse($log->tanggal_bimbingan)->translatedFormat('M') }}</span>
                         <span class="text-xl font-extrabold text-blue-900 leading-none my-0.5">{{ \Carbon\Carbon::parse($log->tanggal_bimbingan)->translatedFormat('d') }}</span>
@@ -81,11 +82,32 @@
 
             {{-- FORM AKSI DINAMIS BERDASARKAN STATUS --}}
             @if($log->status == 'pending')
-                {{-- FASE 1: Dosen merespon booking jadwal pertemuan --}}
-                <form action="{{ route(auth()->user()->role . '.bimbingan.logbook.review', $log->id) }}" method="POST" class="mt-4 border-t border-gray-100 pt-4">
+                {{-- FASE 1: Dosen menanggapi request bimbingan baru --}}
+                <form action="{{ route(auth()->user()->role . '.bimbingan.logbook.review', $log->id) }}" method="POST" class="mt-4 border-t border-gray-100 pt-4 space-y-4">
                     @csrf
                     @method('PUT')
-                    <p class="text-[11px] text-gray-500 mb-3">Konfirmasi kesediaan Anda untuk bimbingan pada rencana tanggal di atas:</p>
+                    
+                    <div class="p-4 bg-slate-50 border border-gray-200 rounded-xl space-y-3">
+                        <p class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Opsi Penolakan Jadwal (Wajib diisi jika Anda mengklik Tolak)</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div class="md:col-span-1">
+                                <label class="block text-[10px] font-bold text-gray-500 mb-1">Pilih Alasan Utama:</label>
+                                <select name="alasan_dropdown" class="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700">
+                                    <option value="Ada Rapat Universitas/Prodi">Ada Rapat Kerja</option>
+                                    <option value="Jam Mengajar/Bentrok Jadwal Lain">Jadwal Jam Bentrok</option>
+                                    <option value="Sedang Dinas Luar Kota">Sedang Dinas Luar</option>
+                                    <option value="Sedang Kurang Sehat / Sakit">Sedang Kurang Sehat</option>
+                                    <option value="Kuota Bimbingan Hari Ini Penuh">Kuota Penuh</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-[10px] font-bold text-gray-500 mb-1">Pesan Tambahan (Instruksi Hari Pengganti):</label>
+                                <input type="text" name="catatan_tambahan" placeholder="Contoh: Silakan ajukan ulang pada hari operasional saya yang lain." class="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-800">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="flex justify-end gap-2">
                         <button type="submit" name="status" value="ditolak" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[11px] font-bold rounded-lg transition">
                             Tolak Jadwal

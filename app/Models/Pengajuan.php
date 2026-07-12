@@ -20,6 +20,10 @@ class Pengajuan extends Model
         'catatan_kaprodi',
     ];
 
+    protected $casts = [
+        'catatan_dosen' => 'array',
+    ];
+
     public function mahasiswa(): BelongsTo
     {
         return $this->belongsTo(Mahasiswa::class);
@@ -39,7 +43,6 @@ class Pengajuan extends Model
 
     public function scopeFilter($query, array $filters)
     {
-        // 1. FILTER NAMA / NIM MAHASISWA
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->whereHas('mahasiswa', function ($qMhs) use ($search) {

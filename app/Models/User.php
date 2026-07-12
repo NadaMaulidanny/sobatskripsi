@@ -42,4 +42,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Mahasiswa::class, 'user_id');
     }
+
+    public function jadwalDosens()
+    {
+        return $this->hasMany(JadwalDosen::class, 'user_id');
+    }
 }
